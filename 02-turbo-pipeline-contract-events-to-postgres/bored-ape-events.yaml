@@ -1,0 +1,54 @@
+name: bored-ape-events
+resource_size: s
+
+sources:
+  ethereum_raw_logs:
+    type: dataset
+    dataset_name: ethereum.raw_logs
+    version: 1.0.0
+    start_at: latest
+
+transforms:
+  # Decode every BAYC log using the contract ABI fetched from Etherscan
+  bayc_decoded:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT
+        id,
+        address,
+        _gs_log_decode(
+          _gs_fetch_abi('https://api.etherscan.io/api?module=contract&action=getabi&address=0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d&apikey=YOUR_KEY', 'etherscan'),
+          topics,
+          data
+        ) as decoded,
+        block_number,
+        block_timestamp,
+        transaction_hash
+      FROM ethereum_raw_logs
+      WHERE address = '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d'
+
+  # Unnest the decoded event name and parameters into flat columns
+  bayc_events:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT
+        id,
+        address,
+        decoded.event_signature as event_signature,
+        decoded.event_params as event_params,
+        block_number,
+        block_timestamp,
+        transaction_hash
+      FROM bayc_decoded
+      WHERE decoded IS NOT NULL
+
+sinks:
+  bayc_postgres:
+    type: postgres
+    from: bayc_events
+    schema: public
+    table: bored_ape_events
+    secret_name: BAYC_POSTGRES
+    primary_key: id

@@ -1,0 +1,12 @@
+{
+  "name": "goldsky-example-subgraph-webhook-receiver",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node src/server.test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

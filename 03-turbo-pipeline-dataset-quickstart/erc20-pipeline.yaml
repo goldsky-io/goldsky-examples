@@ -1,0 +1,29 @@
+name: erc20-transfers
+resource_size: s
+
+sources:
+  base_erc20_transfers:
+    type: dataset
+    dataset_name: base.erc20_transfers
+    version: 1.2.0
+    start_at: latest
+
+transforms:
+  # Filter to only USDC transfers on Base
+  usdc_transfers:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT
+        id,
+        sender,
+        recipient,
+        amount,
+        to_timestamp(block_timestamp) as block_time
+      FROM base_erc20_transfers
+      WHERE address = lower('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913')
+
+sinks:
+  blackhole_sink:
+    type: blackhole
+    from: usdc_transfers

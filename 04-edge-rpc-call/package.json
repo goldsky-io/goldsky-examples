@@ -1,0 +1,11 @@
+{
+  "name": "goldsky-example-edge-rpc-call",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "call": "node call.mjs"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  }
+}
